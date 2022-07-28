@@ -20,6 +20,31 @@ app.get('/', (req, res) => {
   res.render('index')
 })
 
+// router: get login page
+app.get('/users/login', (req, res) => {
+  res.render('login')
+})
+
+// router: post login information
+app.post('/users/login', (req, res) => {
+  res.send('login')
+})
+
+// router: get register page
+app.get('/users/register', (req, res) => {
+  res.render('register')
+})
+
+// router: post register information
+app.post('/users/register', (req, res) => {
+  res.send('register')
+})
+
+// router: logout
+app.get('/users/logout', (req, res) => {
+  res.send('logout')
+})
+
 // start and listen on the express server
 app.listen(3000, () => {
   console.log(`App is running on http://localhost:${PORT}`)
