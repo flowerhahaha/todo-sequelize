@@ -1,7 +1,12 @@
 // packages and variables
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 const express = require('express')
 const methodOverride = require('method-override')
 const exphbs = require('express-handlebars')
+const session = require('express-session')
+const flash = require('connect-flash')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
@@ -15,6 +20,23 @@ app.set('view engine', 'hbs')
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
+
+// middleware: session
+app.use(session({
+  secret: process.env.SESSION_KEY,
+  resave: false,
+  saveUninitialized: true
+}))
+
+// set middleware: flash and locals
+app.use(flash())
+app.use((req, res, next) => {
+  // res.locals.isAuthenticated = req.isAuthenticated()
+  // res.locals.user = req.user
+  res.locals.success_msg = req.flash('success_msg')
+  res.locals.warning_msg = req.flash('warning_msg')
+  next()
+})
 
 // router: get homepage
 app.get('/', (req, res) => {
@@ -74,7 +96,7 @@ app.post('/users/register', async (req, res, next) => {
     }
     // else store the user register information
     await User.create({ name, email, password: bcrypt.hashSync(password, bcrypt.genSaltSync(10), null) })
-    // req.flash('success_msg', 'Register successfully! Please login to your account')
+    req.flash('success_msg', 'Register successfully! Please login to your account')
     res.redirect('/users/login')
   } catch (e) {
     console.log(e)
