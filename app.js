@@ -18,7 +18,12 @@ app.use(methodOverride('_method'))
 
 // router: get homepage
 app.get('/', (req, res) => {
-  res.render('index')
+  Todo.findAll({
+    raw: true,
+    nest: true
+  })
+    .then((todos) => { return res.render('index', { todos }) })
+    .catch((error) => { return res.status(422).json(error) })
 })
 
 // router: get login page
