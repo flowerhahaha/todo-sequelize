@@ -52,19 +52,20 @@ app.get('/users/register', (req, res) => {
 })
 
 // router: post register information
-app.post('/users/register', async (req, res) => {
-  const { name, email, password, confirmPassword } = req.body
-  const errors = []
-  if (!name || !email || !password || !confirmPassword) {
-    errors.push({ message: 'All fields are required.' })
-  }
-  if (password !== confirmPassword) {
-    errors.push({ message: 'The password confirmation does not match' })
-  }
-  if (errors.length) {
-    return res.render('register', { errors, name, email, password })
-  }
+app.post('/users/register', async (req, res, next) => {
   try {
+    const { name, email, password, confirmPassword } = req.body
+    const errors = []
+    // check if the register info is valid
+    if (!name || !email || !password || !confirmPassword) {
+      errors.push({ message: 'All fields are required.' })
+    }
+    if (password !== confirmPassword) {
+      errors.push({ message: 'The password confirmation does not match' })
+    }
+    if (errors.length) {
+      return res.render('register', { errors, name, email, password })
+    }
     // check if the email already exists
     const user = await User.findOne({ where: { email } })
     if (user) {
@@ -77,13 +78,20 @@ app.post('/users/register', async (req, res) => {
     res.redirect('/users/login')
   } catch (e) {
     console.log(e)
-    // next(e)
+    next(e)
   }
 })
 
 // router: logout
 app.get('/users/logout', (req, res) => {
   res.send('logout')
+})
+
+// error handling: catch error from server side
+app.use((err, req, res, next) => {
+  const errMessage = 'Sorry! Server is broken. We will fix it soon.'
+  console.log(err)
+  res.status(500).render('error', { errMessage })
 })
 
 // start and listen on the express server
