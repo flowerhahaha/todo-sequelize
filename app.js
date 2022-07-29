@@ -5,14 +5,12 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express')
 const methodOverride = require('method-override')
 const exphbs = require('express-handlebars')
-const passport = require('passport')
 const session = require('express-session')
 const flash = require('connect-flash')
-const bcrypt = require('bcryptjs')
 const usePassport = require('./config/passport')
+const routes = require('./routes')
 const app = express()
 const PORT = 3000
-const { Todo, User } = require('./models')
 
 // template engine: handlebars
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
@@ -43,84 +41,8 @@ app.use((req, res, next) => {
   next()
 })
 
-// router: get homepage
-app.get('/', (req, res) => {
-  Todo.findAll({
-    raw: true,
-    nest: true
-  })
-    .then((todos) => { return res.render('index', { todos }) })
-    .catch((error) => { return res.status(422).json(error) })
-})
-
-// router: get detail page
-app.get('/todos/:id', (req, res) => {
-  const id = req.params.id
-  return Todo.findByPk(id)
-    .then(todo => {
-      res.render('detail', { todo: todo.toJSON() })
-    })
-    .catch(error => console.log(error))
-})
-
-// router: get login page
-app.get('/users/login', (req, res) => {
-  res.render('login')
-})
-
-// router: post login information
-app.post('/users/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/users/login'
-}))
-
-// router: get register page
-app.get('/users/register', (req, res) => {
-  res.render('register')
-})
-
-// router: post register information
-app.post('/users/register', async (req, res, next) => {
-  try {
-    const { name, email, password, confirmPassword } = req.body
-    const errors = []
-    // check if the register info is valid
-    if (!name || !email || !password || !confirmPassword) {
-      errors.push({ message: 'All fields are required.' })
-    }
-    if (password !== confirmPassword) {
-      errors.push({ message: 'The password confirmation does not match' })
-    }
-    if (errors.length) {
-      return res.render('register', { errors, name, email, password })
-    }
-    // check if the email already exists
-    const user = await User.findOne({ where: { email } })
-    if (user) {
-      errors.push({ message: 'User already exists' })
-      return res.render('register', { errors, name, email, password })
-    }
-    // else store the user register information
-    await User.create({ name, email, password: bcrypt.hashSync(password, bcrypt.genSaltSync(10), null) })
-    req.flash('success_msg', 'Register successfully! Please login to your account')
-    res.redirect('/users/login')
-  } catch (e) {
-    console.log(e)
-    next(e)
-  }
-})
-
-// router: logout
-app.get('/users/logout', (req, res) => {
-  res.send('logout')
-})
-
-// error handling: catch error from server side
-app.use((err, req, res, next) => {
-  const errMessage = 'Sorry! Server is broken. We will fix it soon.'
-  console.log(err)
-  res.status(500).render('error', { errMessage })
-})
+// middleware: routes
+app.use(routes)
 
 // start and listen on the express server
 app.listen(3000, () => {
