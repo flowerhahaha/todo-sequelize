@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     isDone: DataTypes.BOOLEAN
   }, {});
   Todo.associate = function(models) {
-    // associations can be defined here
+    Todo.belongsTo(models.User)
   };
   return Todo;
 };

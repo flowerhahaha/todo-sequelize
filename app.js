@@ -5,6 +5,7 @@ const exphbs = require('express-handlebars')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
+const { Todo, User } = require('./models')
 
 // template engine: handlebars
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
@@ -37,7 +38,12 @@ app.get('/users/register', (req, res) => {
 
 // router: post register information
 app.post('/users/register', (req, res) => {
-  res.send('register')
+  const { name, email, password, confirmPassword } = req.body
+  User.create({ name, email, password })
+    .then(user => {
+      console.log(user)
+      res.redirect('/')
+    })
 })
 
 // router: logout
