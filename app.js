@@ -5,9 +5,11 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express')
 const methodOverride = require('method-override')
 const exphbs = require('express-handlebars')
+const passport = require('passport')
 const session = require('express-session')
 const flash = require('connect-flash')
 const bcrypt = require('bcryptjs')
+const usePassport = require('./config/passport')
 const app = express()
 const PORT = 3000
 const { Todo, User } = require('./models')
@@ -28,7 +30,10 @@ app.use(session({
   saveUninitialized: true
 }))
 
-// set middleware: flash and locals
+// middleware: passport initialize and authenticate
+usePassport(app)
+
+// middleware: flash and locals
 app.use(flash())
 app.use((req, res, next) => {
   // res.locals.isAuthenticated = req.isAuthenticated()
@@ -64,9 +69,10 @@ app.get('/users/login', (req, res) => {
 })
 
 // router: post login information
-app.post('/users/login', (req, res) => {
-  res.send('login')
-})
+app.post('/users/login', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/users/login'
+}))
 
 // router: get register page
 app.get('/users/register', (req, res) => {
