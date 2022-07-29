@@ -1,14 +1,24 @@
 const router = require('express').Router()
-const { Todo } = require('../../models')
+const { Todo, User } = require('../../models')
 
 // router: get homepage
-router.get('/', (req, res) => {
-  Todo.findAll({
-    raw: true,
-    nest: true
-  })
-    .then((todos) => { return res.render('index', { todos }) })
-    .catch((error) => { return res.status(422).json(error) })
+router.get('/', async (req, res, next) => {
+  try {
+    const UserId = req.user.id
+    const user = await User.findByPk(UserId)
+    if (!user) {
+      const errMessage = 'User not found. Please register first!'
+      return res.status(200).render('error', { errMessage })
+    }
+    const todos = await Todo.findAll({
+      raw: true,
+      nest: true,
+      where: { UserId }
+    })
+    return res.render('index', { todos })
+  } catch (e) {
+    next(e)
+  }
 })
 
 module.exports = router
